@@ -11,30 +11,28 @@ const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmO
 export default function Moremovies({ type }) { 
   const router = useRouter();
   const [movieData, setMovieData] = useState([]);
-  
-  // FIX: Start as 'true' boolean. (Avoid [false] array which is always truthy)
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true); // Initialized as true boolean
 
   const getData = async () => {
     try {
       setLoading(true);
-      const upComingMovieEndPoint = `${BASE_URL}/movie/${type}?language=en-US&page=1`;
-      const response = await fetch(upComingMovieEndPoint, {
+      const endpoint = `${BASE_URL}/movie/${type}?language=en-US&page=1`;
+      const response = await fetch(endpoint, {
         headers: {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!response.ok) throw new Error("Fetch failed");
 
       const data = await response.json();
       setMovieData(data.results || []);
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
-      // Small timeout to allow the browser to transition smoothly
-      setTimeout(() => setLoading(false), 500);
+      // Small delay to ensure the UI feels smooth
+      setTimeout(() => setLoading(false), 300);
     }
   };
 
@@ -42,11 +40,11 @@ export default function Moremovies({ type }) {
     if (type) {
       getData();
     }
-  }, [type]); // Dependency array ensures this runs when type is available
+  }, [type]); // Dependency array prevents infinite loops
 
   if (loading) {
     return (
-      <div className="w-full max-w-[1440px] mx-auto py-10">
+      <div className="w-full max-w-[1440px] mx-auto p-20">
         <LoadingSkeleton />
       </div>
     );
@@ -55,7 +53,7 @@ export default function Moremovies({ type }) {
   return (
     <div className="w-full max-w-[1440px] mx-auto flex flex-col gap-8 py-10">
       <div className="flex justify-between px-4 md:px-20">
-        <p className="text-[24px] font-bold capitalize">{type?.replace('_', ' ')}</p>
+        <h2 className="text-[24px] font-bold capitalize">{type?.replace('_', ' ')}</h2>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-5 px-4 md:px-20 gap-8">
@@ -65,7 +63,7 @@ export default function Moremovies({ type }) {
             movieId={movie.id}
             title={movie.title}
             rate={movie.vote_average?.toFixed(1)}
-            // Ensure the Moviecard component is ready for the full URL
+            // Passing the FULL URL to the image
             imageUrl={movie.poster_path 
               ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
               : null}
