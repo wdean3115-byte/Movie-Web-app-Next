@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/carousel";
 
 const BASE_URL = "https://api.themoviedb.org/3";
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
 
 function HeroSection() {
   const [heroList, setHeroList] = useState([]);
@@ -68,11 +67,14 @@ function HeroSection() {
     }
   };
 
+  // --- FIX 1: Added empty dependency array [] ---
+  // This ensures the API is called only once when the component mounts.
   useEffect(() => {
     getData();
-  });
+  }, []); 
 
   const handleNext = () => {
+    if (heroList.length === 0) return;
     const nextIndex = (currentIndex + 1) % heroList.length;
     setCurrentIndex(nextIndex);
     getHeroDetails(heroList[nextIndex].id);
@@ -80,6 +82,7 @@ function HeroSection() {
   };
 
   const handlePrevious = () => {
+    if (heroList.length === 0) return;
     const prevIndex = (currentIndex - 1 + heroList.length) % heroList.length;
     setCurrentIndex(prevIndex);
     getHeroDetails(heroList[prevIndex].id);
@@ -89,21 +92,24 @@ function HeroSection() {
   const heroData = heroList[currentIndex];
 
   return (
-    <div className="w-[1920px] h-fit bg-gray-800 rounded-lg overflow-hidden relative">
+    <div className="w-full max-w-[1920px] h-[600px] bg-gray-800 rounded-lg overflow-hidden relative mx-auto">
       <Carousel>
         <CarouselContent>
           <CarouselItem>
             {heroData && (
               <>
+                {/* --- FIX 2: Added safety check for image path --- */}
                 <Image
-                  src={`https://image.tmdb.org/t/p/original${heroData.backdrop_path}`}
+                  src={heroData.backdrop_path 
+                    ? `https://image.tmdb.org/t/p/original${heroData.backdrop_path}` 
+                    : "https://via.placeholder.com/1920x1080?text=No+Image"}
                   alt={heroData.title}
                   fill
                   priority
                   className="object-cover opacity-70"
                   sizes="100vw"
                 />
-                <div className="absolute top-44 left-35 text-white w-[404px] h-[264px] opacity-100 gap-4 flex flex-col content-center">
+                <div className="absolute top-44 left-10 md:left-35 text-white w-[404px] z-20 gap-4 flex flex-col">
                   <p className="font-inter font-normal text-[16px] leading-6">
                     Now Playing:
                   </p>
@@ -111,18 +117,16 @@ function HeroSection() {
                     {heroData.title}
                   </h1>
                   <div className="flex items-center gap-2">
-                    <StarIcon /> {heroData.vote_average.toFixed(0)}/10
+                    <StarIcon /> {heroData.vote_average?.toFixed(1)}/10
                   </div>
-                  <div>{heroDataDetails?.overview}</div>
+                  <div className="line-clamp-4">{heroDataDetails?.overview}</div>
 
                   {!showTrailer && (
                     <button
-                      className="w-[145px] h-10 rounded-md gap-2 flex items-center justify-center
-                      bg-white text-black font-semibold hover:bg-gray-200 transition cursor-pointer"
+                      className="w-[145px] h-10 rounded-md bg-white text-black font-semibold hover:bg-gray-200 transition cursor-pointer"
                       onClick={() => setShowTrailer(true)}
                     >
-                      {" "}
-                      ▷Watch trailer
+                      ▷ Watch trailer
                     </button>
                   )}
                 </div>
@@ -131,7 +135,7 @@ function HeroSection() {
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
                     <Trailer movieId={heroData.id} />
                     <button
-                      className="absolute top-5 right-5 text-white text-3xl font-bold hover:text-gray-300 cursor-pointer"
+                      className="absolute top-5 right-5 text-white text-3xl font-bold cursor-pointer"
                       onClick={() => setShowTrailer(false)}
                     >
                       ✕
@@ -146,13 +150,13 @@ function HeroSection() {
 
       <button
         onClick={handlePrevious}
-        className="absolute top-1/2 left-11 transform -translate-y-1/2 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center z-10"
+        className="absolute top-1/2 left-11 transform -translate-y-1/2 bg-white/20 hover:bg-white/50 text-black rounded-full w-10 h-10 flex items-center justify-center z-10 transition"
       >
         ‹
       </button>
       <button
         onClick={handleNext}
-        className="absolute top-1/2 right-11 transform -translate-y-1/2 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center z-10"
+        className="absolute top-1/2 right-11 transform -translate-y-1/2 bg-white/20 hover:bg-white/50 text-black rounded-full w-10 h-10 flex items-center justify-center z-10 transition"
       >
         ›
       </button>
