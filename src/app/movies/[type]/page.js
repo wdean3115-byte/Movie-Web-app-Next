@@ -12,12 +12,12 @@ import {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationNext,   
+  PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
- 
+
 const BASE_URL = "https://api.themoviedb.org/3";
- 
+
 const ACCESS_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
 export default function Page() {
@@ -26,7 +26,7 @@ export default function Page() {
   const [page, setPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const param = useParams();
- 
+
   const UpcomingDataList = async () => {
     setLoading(true);
     const UpcomingEndpoint = `${BASE_URL}/movie/${param.type}?language=en-US&page=${page}`;
@@ -42,7 +42,7 @@ export default function Page() {
   };
   useEffect(() => {
     UpcomingDataList();
-  }, [page]);
+  });
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center">
@@ -58,25 +58,25 @@ export default function Page() {
       setCurrentPage(currentPage - 1);
     }
   };
- 
+
   const handleClickNextButton = () => {
     {
       setPage(page + 1);
       setCurrentPage(currentPage + 1);
     }
   };
- 
+
   return (
     <div className="flex flex-col items-center box-border justify-center">
       <Header />
-      <div className="flex flex-col gap-[32px]">
+      <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-8 pt-[52px] items-center">
-          <div className="w-[1277px] h-[36px] flex justify-between items-center ">
-            <p className="font-semibold text-2xl leading-[32px] tracking-[-0.6px] text-[#09090B]">
+          <div className="w-[1277px] h-9 flex justify-between items-center ">
+            <p className="font-semibold text-2xl leading-8 tracking-[-0.6px] text-[#09090B]">
               {param.type}
             </p>
           </div>
-          <div className="grid grid-cols-5 gap-8 px-[32px]">
+          <div className="grid grid-cols-5 gap-8 px-8">
             {upcomingData.slice(0, 10).map((movie) => {
               return (
                 <MovieCard
@@ -136,10 +136,8 @@ export default function Page() {
           </PaginationContent>
         </Pagination>
       </div>
- 
+
       <Footer />
     </div>
   );
 }
- 
- 

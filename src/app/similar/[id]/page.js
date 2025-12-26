@@ -42,7 +42,7 @@ export default function Page() {
   };
   useEffect(() => {
     similarDataList();
-  }, [page]);
+  });
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center">
@@ -68,14 +68,14 @@ export default function Page() {
   return (
     <div className="flex flex-col items-center box-border justify-center">
       <Header />
-      <div className="flex flex-col gap-[32px]">
+      <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-8 pt-[52px] items-center">
-          <div className="w-[1277px] h-[36px] flex justify-between items-center ">
-            <p className="font-semibold text-2xl leading-[32px] tracking-[-0.6px] text-[#09090B]">
-             More Like This
+          <div className="w-[1277px] h-9 flex justify-between items-center ">
+            <p className="font-semibold text-2xl leading-8 tracking-[-0.6px] text-[#09090B]">
+              More Like This
             </p>
           </div>
-          <div className="grid grid-cols-5 gap-8 px-[32px]">
+          <div className="grid grid-cols-5 gap-8 px-8">
             {similarData.slice(0, 10).map((movie) => {
               return (
                 <MovieCard
@@ -89,7 +89,7 @@ export default function Page() {
             })}
           </div>
         </div>
-        <Pagination className='items-end'>
+        <Pagination className="items-end">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
@@ -121,9 +121,8 @@ export default function Page() {
                 {page + 1}
               </PaginationLink>
             </PaginationItem>
-            <PaginationItem >
-              <PaginationLink >
-              </PaginationLink>
+            <PaginationItem>
+              <PaginationLink></PaginationLink>
             </PaginationItem>
             <PaginationItem>
               <PaginationEllipsis />
