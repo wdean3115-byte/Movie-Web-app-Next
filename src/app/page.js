@@ -1,25 +1,18 @@
-
 import { Header } from "./_home/Header";
 import HeroSection from "./_home/HeroSection";
-import  PopularList  from "./_home/PopularMovieList";
-import  TopRatedList  from "./_home/TopRatedMovieList";
-import UpcomingList from "./_home/UpcomingMovieList";
+import { MovieList } from "./_home/MovieList"; // Using this for all categories
 import { Footer } from "./_home/Footer";
-import { MovieList } from "./_home/MovieList";
-
-
-import { ThemeProvider } from "@/components/theme-provider"
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center box-border">
+    <div className="flex flex-col items-center w-full">
       <Header />
-      <HeroSection/>
-     < MovieList type="upcoming"/>
-     < MovieList type="popular"/>
-     < MovieList type="top_rated"/>
-      <Footer/>
+      <HeroSection />
+      {/* These will now fetch the correct data based on the type prop */}
+      <MovieList type="upcoming" />
+      <MovieList type="popular" />
+      <MovieList type="top_rated" />
+      <Footer />
     </div>
   );
 }
- 
