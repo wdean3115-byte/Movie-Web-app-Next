@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 
 const BASE_URL = "https://api.themoviedb.org/3";
-const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
+const ACCESS_TOKEN = "YOUR_TOKEN_HERE";
 
 function HeroSection() {
   const [heroList, setHeroList] = useState([]);
@@ -28,14 +28,11 @@ function HeroSection() {
         },
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("TMDB API error", response.status, text);
-        return;
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
       setHeroList(data.results);
+      // Initialize details for the first movie
       if (data.results[0]) {
         getHeroDetails(data.results[0].id);
       }
@@ -54,11 +51,7 @@ function HeroSection() {
         },
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("TMDB API ERROR:", response.status, text);
-        return;
-      }
+      if (!response.ok) return;
 
       const detailsData = await response.json();
       setHeroDataDetails(detailsData);
@@ -67,38 +60,38 @@ function HeroSection() {
     }
   };
 
-  // --- FIX 1: Added empty dependency array [] ---
-  // This ensures the API is called only once when the component mounts.
   useEffect(() => {
     getData();
   }, []); 
 
+  // --- FIX: Sync details whenever the index changes ---
+  useEffect(() => {
+    if (heroList.length > 0) {
+      getHeroDetails(heroList[currentIndex].id);
+    }
+  }, [currentIndex, heroList]);
+
   const handleNext = () => {
     if (heroList.length === 0) return;
-    const nextIndex = (currentIndex + 1) % heroList.length;
-    setCurrentIndex(nextIndex);
-    getHeroDetails(heroList[nextIndex].id);
+    setCurrentIndex((prev) => (prev + 1) % heroList.length);
     setShowTrailer(false);
   };
 
   const handlePrevious = () => {
     if (heroList.length === 0) return;
-    const prevIndex = (currentIndex - 1 + heroList.length) % heroList.length;
-    setCurrentIndex(prevIndex);
-    getHeroDetails(heroList[prevIndex].id);
+    setCurrentIndex((prev) => (prev - 1 + heroList.length) % heroList.length);
     setShowTrailer(false);
   };
 
   const heroData = heroList[currentIndex];
 
   return (
-    <div className="w-full max-w-[1920px] h-[600px] bg-gray-800 rounded-lg overflow-hidden relative mx-auto">
+    <div className="w-full max-w-[1920px] h-[600px] bg-gray-900 rounded-lg overflow-hidden relative mx-auto">
       <Carousel>
         <CarouselContent>
           <CarouselItem>
             {heroData && (
-              <>
-                {/* --- FIX 2: Added safety check for image path --- */}
+              <div className="relative w-full h-[600px]">
                 <Image
                   src={heroData.backdrop_path 
                     ? `https://image.tmdb.org/t/p/original${heroData.backdrop_path}` 
@@ -106,24 +99,28 @@ function HeroSection() {
                   alt={heroData.title}
                   fill
                   priority
-                  className="object-cover opacity-70"
+                  className="object-cover opacity-60"
                   sizes="100vw"
                 />
-                <div className="absolute top-44 left-10 md:left-35 text-white w-[404px] z-20 gap-4 flex flex-col">
-                  <p className="font-inter font-normal text-[16px] leading-6">
-                    Now Playing:
+                
+                {/* Content Overlay */}
+                <div className="absolute top-40 left-10 md:left-24 text-white w-full max-w-[500px] z-20 flex flex-col gap-4">
+                  <p className="text-sm font-medium uppercase tracking-widest text-gray-300">
+                    Now Playing
                   </p>
-                  <h1 className="font-inter font-extrabold text-[36px] leading-10">
+                  <h1 className="font-inter font-extrabold text-[40px] md:text-[56px] leading-tight">
                     {heroData.title}
                   </h1>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-lg font-semibold">
                     <StarIcon /> {heroData.vote_average?.toFixed(1)}/10
                   </div>
-                  <div className="line-clamp-4">{heroDataDetails?.overview}</div>
+                  <p className="line-clamp-3 text-gray-200 text-lg leading-relaxed bg-black/20 p-2 rounded">
+                    {heroDataDetails?.overview || heroData.overview}
+                  </p>
 
                   {!showTrailer && (
                     <button
-                      className="w-[145px] h-10 rounded-md bg-white text-black font-semibold hover:bg-gray-200 transition cursor-pointer"
+                      className="w-[180px] h-12 rounded-full bg-white text-black font-bold hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 mt-4 shadow-lg"
                       onClick={() => setShowTrailer(true)}
                     >
                       ▷ Watch trailer
@@ -132,34 +129,27 @@ function HeroSection() {
                 </div>
 
                 {showTrailer && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-                    <Trailer movieId={heroData.id} />
-                    <button
-                      className="absolute top-5 right-5 text-white text-3xl font-bold cursor-pointer"
-                      onClick={() => setShowTrailer(false)}
-                    >
-                      ✕
-                    </button>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-50 p-4">
+                    <div className="relative w-full max-w-[1000px] aspect-video">
+                       <Trailer movieId={heroData.id} />
+                       <button
+                         className="absolute -top-12 right-0 text-white text-4xl hover:text-red-500 transition cursor-pointer"
+                         onClick={() => setShowTrailer(false)}
+                       >
+                         ✕
+                       </button>
+                    </div>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </CarouselItem>
         </CarouselContent>
       </Carousel>
 
-      <button
-        onClick={handlePrevious}
-        className="absolute top-1/2 left-11 transform -translate-y-1/2 bg-white/20 hover:bg-white/50 text-black rounded-full w-10 h-10 flex items-center justify-center z-10 transition"
-      >
-        ‹
-      </button>
-      <button
-        onClick={handleNext}
-        className="absolute top-1/2 right-11 transform -translate-y-1/2 bg-white/20 hover:bg-white/50 text-black rounded-full w-10 h-10 flex items-center justify-center z-10 transition"
-      >
-        ›
-      </button>
+      {/* Navigation Buttons */}
+      <button onClick={handlePrevious} className="absolute top-1/2 left-6 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center z-30 backdrop-blur-sm transition">‹</button>
+      <button onClick={handleNext} className="absolute top-1/2 right-6 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white rounded-full w-12 h-12 flex items-center justify-center z-30 backdrop-blur-sm transition">›</button>
     </div>
   );
 }
