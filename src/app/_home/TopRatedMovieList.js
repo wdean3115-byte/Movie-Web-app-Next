@@ -2,49 +2,58 @@
 import { MovieCard } from "./MovieCard";
 import SeeMoreIcon from "../_icons/SeeMoreIcon";
 import { useEffect, useState } from "react";
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
+
+const ACCESS_TOKEN = "YOUR_TOKEN_HERE";
 const BASE_URL = "https://api.themoviedb.org/3/";
 
 function TopRatedList() {
   const [movieData, setMovieData] = useState([]);
+
   const getData = async () => {
-    const upComingMovieEndPoint = `${BASE_URL}/movie/top_rated?language=en-US&page=1`;
-    const response = await fetch(upComingMovieEndPoint, {
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const topRatedEndPoint = `${BASE_URL}/movie/top_rated?language=en-US&page=1`;
+      const response = await fetch(topRatedEndPoint, {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    console.log("Working.");
+      if (!response.ok) return;
 
-    const data = await response.json();
-    console.log("Data: ", data);
-
-    setMovieData(data.results);
+      const data = await response.json();
+      // Optionally slice to 10 if you only want two rows of 5
+      setMovieData(data.results.slice(0, 10)); 
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
   };
+
   useEffect(() => {
     getData();
   }, []);
 
-  console.log(movieData, "datdatdtatt");
   return (
-    <div className="w-[1440px] max-w-[1440px] ">
-      <div className="flex justify-between px-20">
-        <p className="text-8xl text-[24px]">TopRated</p>
-        <button className="flex items-center justify-center gap-2 px-16px">
+    // Changed fixed width to max-width + mx-auto for responsiveness
+    <div className="w-full max-w-[1440px] mx-auto py-10">
+      <div className="flex justify-between items-center px-10 md:px-20 mb-6">
+        <h2 className="text-[24px] font-semibold text-[#09090B]">Top Rated</h2>
+        <button className="flex items-center justify-center gap-2 hover:opacity-60 transition">
           <p className="text-sm font-medium text-[#09090B]">See more</p>
           <SeeMoreIcon />
         </button>
       </div>
-      <div className="grid grid-cols-5 max-w-[1440px] w-[1440px] px-20 gap-8">
+
+      {/* Responsive Grid: 2 columns on mobile, 5 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 px-10 md:px-20 gap-8">
         {movieData.map((movie) => (
           <MovieCard
             key={movie.id}
             title={movie.title}
-            rate={movie.vote_average.toFixed(1)}
-            imageUrl={`https://image.tmdb.org/t/p/original${movie.poster_path}`}
+            // Added optional chaining (?) to prevent crashes
+            rate={movie.vote_average?.toFixed(1) || "0.0"}
+            // Changed 'original' to 'w500' for much faster loading
+            imageUrl={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
           />
         ))}
       </div>
