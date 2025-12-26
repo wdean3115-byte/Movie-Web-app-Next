@@ -8,11 +8,11 @@ import LoadingSkeleton from "../_icons/LoadingSkeleton";
 const BASE_URL = "https://api.themoviedb.org/3";
 const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
 
-export default function Moremovies({ type }) { // Destructured type for cleaner code
+export default function Moremovies({ type }) { 
   const router = useRouter();
   const [movieData, setMovieData] = useState([]);
   
-  // FIX 1: Change [false] (array) to true (boolean)
+  // FIX: Start as 'true' boolean. (Avoid [false] array which is always truthy)
   const [loading, setLoading] = useState(true); 
 
   const getData = async () => {
@@ -26,25 +26,30 @@ export default function Moremovies({ type }) { // Destructured type for cleaner 
         },
       });
 
+      if (!response.ok) throw new Error("Network response was not ok");
+
       const data = await response.json();
       setMovieData(data.results || []);
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
-      // FIX 2: Stop loading after data arrives (removed the 5 second delay)
-      setLoading(false);
+      // Small timeout to allow the browser to transition smoothly
+      setTimeout(() => setLoading(false), 500);
     }
   };
 
-  // FIX 3: Added dependency array [type] to prevent infinite loops
   useEffect(() => {
     if (type) {
       getData();
     }
-  }, [type]);
+  }, [type]); // Dependency array ensures this runs when type is available
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="w-full max-w-[1440px] mx-auto py-10">
+        <LoadingSkeleton />
+      </div>
+    );
   }
 
   return (
@@ -60,7 +65,7 @@ export default function Moremovies({ type }) { // Destructured type for cleaner 
             movieId={movie.id}
             title={movie.title}
             rate={movie.vote_average?.toFixed(1)}
-            // FIX 4: Pass the full TMDB image URL
+            // Ensure the Moviecard component is ready for the full URL
             imageUrl={movie.poster_path 
               ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
               : null}
@@ -69,8 +74,8 @@ export default function Moremovies({ type }) { // Destructured type for cleaner 
       </div>
       
       <div className="px-20 mt-4">
-        <button onClick={() => router.back()} className="flex items-center gap-2 hover:opacity-50 transition">
-          <PreviuosIcon /> Back
+        <button onClick={() => router.back()} className="flex items-center gap-2 hover:opacity-50 transition cursor-pointer">
+          <PreviuosIcon /> <span>Back</span>
         </button>
       </div>
     </div>
