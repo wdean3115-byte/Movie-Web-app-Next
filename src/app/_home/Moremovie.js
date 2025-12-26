@@ -6,67 +6,71 @@ import { PreviuosIcon } from "@/app/_icons/PreviuosIcon";
 import LoadingSkeleton from "../_icons/LoadingSkeleton";
 
 const BASE_URL = "https://api.themoviedb.org/3";
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
 
-const ACCESS_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMjI5ZmNiMGRmZTNkMzc2MWFmOWM0YjFjYmEyZTg1NiIsIm5iZiI6MTc1OTcxMTIyNy43OTAwMDAyLCJzdWIiOiI2OGUzMGZmYjFlN2Y3MjAxYjI5Y2FiYmIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.M0DQ3rCdsWnMw8U-8g5yGXx-Ga00Jp3p11eRyiSxCuY";
-
-export default function Moremovies(props) {
+export default function Moremovies({ type }) { // Destructured type for cleaner code
   const router = useRouter();
-
-  const { type } = props;
   const [movieData, setMovieData] = useState([]);
-  const [loading, setLoading] = useState([false]);
+  
+  // FIX 1: Change [false] (array) to true (boolean)
+  const [loading, setLoading] = useState(true); 
 
   const getData = async () => {
-    setLoading(true);
-    const upComingMovieEndPoint = `${BASE_URL}/movie/${type}?language=en-US&page=1`;
-    const response = await fetch(upComingMovieEndPoint, {
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      setLoading(true);
+      const upComingMovieEndPoint = `${BASE_URL}/movie/${type}?language=en-US&page=1`;
+      const response = await fetch(upComingMovieEndPoint, {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    console.log("Working.");
-
-    const data = await response.json();
-    console.log("Data: ", data);
-
-    setTimeout(() => {
+      const data = await response.json();
+      setMovieData(data.results || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      // FIX 2: Stop loading after data arrives (removed the 5 second delay)
       setLoading(false);
-    }, 5000);
-    setMovieData(data.results);
+    }
   };
+
+  // FIX 3: Added dependency array [type] to prevent infinite loops
   useEffect(() => {
-    getData();
-  });
+    if (type) {
+      getData();
+    }
+  }, [type]);
 
   if (loading) {
-    return (
-      <div>
-        <LoadingSkeleton />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
-    <div className="w-[1440px] max-w-[1440px] flex flex-col gap-8">
-      <div className="flex justify-between px-20">
-        <p className="text-[24px]">{type}</p>
+    <div className="w-full max-w-[1440px] mx-auto flex flex-col gap-8 py-10">
+      <div className="flex justify-between px-4 md:px-20">
+        <p className="text-[24px] font-bold capitalize">{type?.replace('_', ' ')}</p>
       </div>
-      <div className="grid grid-cols-5 max-w-[1440px] w-[1440px] px-20 gap-8">
-        {movieData.slice(0, 10).map((movie) => (
+      
+      <div className="grid grid-cols-2 md:grid-cols-5 px-4 md:px-20 gap-8">
+        {movieData.map((movie) => (
           <Moviecard
             key={movie.id}
+            movieId={movie.id}
             title={movie.title}
-            rate={movie.vote_average}
-            imageUrl={movie.poster_path}
+            rate={movie.vote_average?.toFixed(1)}
+            // FIX 4: Pass the full TMDB image URL
+            imageUrl={movie.poster_path 
+              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+              : null}
           />
         ))}
       </div>
-      <div>
-        <button>
-          <PreviuosIcon />
+      
+      <div className="px-20 mt-4">
+        <button onClick={() => router.back()} className="flex items-center gap-2 hover:opacity-50 transition">
+          <PreviuosIcon /> Back
         </button>
       </div>
     </div>
